@@ -178,10 +178,10 @@ NOTE: You should get your AccountSid, Journey ID and Master Token and Master key
 Contact Exoverify support with supporting logs if issue persists or requires further support.
 
 ### Webhooks :
-* Event Webhook: <p> Please configure an API here to receive updates on the status (success/failure) of the verifications and the mechanism being implemented.
+* Event Webhook: <p> Please configure an API here to receive updates on the status (success/failure) of the verifications and the mechanism being implemented.</p>
 
-    * The sample payload for the webhook in case of success is:
-
+    * The sample payload for the webhook in case of <b>success</b> is:
+      ```json
         {
                 "mechanism_type": "notp",
                 "verification_id": "ac53fb78a80dc653670f764be032171i",
@@ -189,10 +189,11 @@ Contact Exoverify support with supporting logs if issue persists or requires fur
                 "phone": "+918298765625",
                 "status": "success",
                 "webhook_timestamp": "2023-01-18T09:01:52Z"
-        }   
+        } 
+        ```
 
-    * The sample payload for the webhook in case of failure is:
-
+    * The sample payload for the webhook in case of <b>failure</b> is:
+      ```josn
         {
                 "mechanism_type": "notp",
                 "verification_id": "d9dd21bb5uhgb5d6f83ec9fb0a52171i",
@@ -208,5 +209,4 @@ Contact Exoverify support with supporting logs if issue persists or requires fur
                 },
                 "webhook_timestamp": "2023-01-18T09:04:00Z"
         }
-
-</p>     
+        ```
