@@ -20,12 +20,12 @@ Learn more about nOTP : https://exotel.com/products/authentication/
 ### Verification Process
 The below flow diagram explains a typical verification process:
 
-![Verification Process](https://github.com/exotel-products/Orchestration/blob/master/VerificationProcess.png)
+![Verification Process](https://github.com/zafark13/Orchestration/blob/master/VerificationProcess.png)
 
 ### Sequence Diagram
 The below squence diagram explains the sequence of opeartions between client server and Orchestration SDK and Backend :
 
-![Sequence Diagram](https://github.com/exotel-products/Orchestration/blob/master/VerificationSequenceDiagram.png)
+![Sequence Diagram](https://github.com/zafark13/Orchestration/blob/master/VerificationSequenceDiagram.png)
 
 ### Pre-requisites
 * User needs to have a KYC verified account with Exotel.
