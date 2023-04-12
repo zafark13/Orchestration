@@ -1,26 +1,31 @@
 # ExoVerify
 
-This repository contains code of a sample android application where the Exotel Orchestration SDK is implemented.
+This repository contains code of a sample android application where the Exoverify SDK is implemented.
 
 Note: You need to add credentials to the variables declared in the MainActivity.java to get the code working
 Exoverify SDK is a native java sdk for andriod only.
 
 ### Overview
-Verify user’s mobile number quickly and seamlessly using Orchestration verification library (Android only).
+Verify user’s mobile number quickly and seamlessly using Exoverify verification library (Android only).
 
-Orchestration feature ensures efficient and streamlined verification processes by allowing clients to trigger a sequence of mechanisms with pre-defined timeouts. Currently, we offer two verification mechanisms nOTP and SMSOTP, with more to be launched in the future. This feature allows for all mechanisms to be seamlessly integrated for a smooth and efficient verification process.
+This SDK supports three types of verification:
+1. nOTP: Exoverify SDK automatically intercepts a phone call triggered by the Exoverify system for the mobile number verification, allowing you to verify your users with no user interaction. Using the SDK, you can have nOTP verification into your existing android apps with just a few lines of code.
+
+2. SMSOTP: Exeverify SDK automatically detects the sms received on phone, extracts OTP from sms and verify it seamlessly without any user interaction, it also supports OTP verification manually by user.
+
+3. ORCHESTRATION: This feature ensures efficient and streamlined verification processes by allowing clients to trigger a sequence of mechanisms with pre-defined timeouts. Currently, we offer two verification mechanisms nOTP and SMSOTP, with more to be launched in the future. This feature allows for all mechanisms to be seamlessly integrated for a smooth and efficient verification process.
 
 Learn more about nOTP : https://exotel.com/products/authentication/
 
-### Orchestration Verification Process
+### Verification Process
 The below flow diagram explains a typical verification process:
 
-![Orchestration Verification Process](https://github.com/exotel-products/Orchestration/blob/master/verificationProcess.png)
+![Verification Process](https://github.com/exotel-products/Orchestration/blob/master/verificationProcess.png)
 
-### Orchestration Sequence Diagram
+### Sequence Diagram
 The below squence diagram explains the sequence of opeartions between client server and Orchestration SDK and Backend :
 
-![Orchestration Sequence Diagram](https://github.com/exotel-products/Orchestration/blob/master/OrchestrationSequenceDiagram.png)
+![Sequence Diagram](https://github.com/exotel-products/Orchestration/blob/master/OrchestrationSequenceDiagram.png)
 
 ### Pre-requisites
 * User needs to have a KYC verified account with Exotel.
@@ -37,7 +42,7 @@ Please visit [Exoverify Dashboard](https://verify.exotel.com) to Create your nOT
 1. Include the SDK library in your Android Project:
    If you are using Gradle, you need to add the libray in the app level Gradle file, as shown below:
 
-        dependencies { implementation 'org.bitbucket.Exotel:exoverify:1.7.0' }
+        dependencies { implementation 'org.bitbucket.Exotel:exoverify:2.0.0' }
 
 2. A few other dependencies that you need to add are:
 
@@ -58,15 +63,26 @@ Please visit [Exoverify Dashboard](https://verify.exotel.com) to Create your nOT
                         }
                 }
         }
-}
 
 4. The below permissions are required to be added in your AndroidManifest file:
 
-       <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
-       <uses-permission android:name="android.permission.INTERNET" />
-       <uses-permission android:name="android.permission.CALL_PHONE" />
-       <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-       <uses-permission android:name="android.permission.READ_CALL_LOG"/>
+        NOTP:
+                <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+                <uses-permission android:name="android.permission.CALL_PHONE" />
+                <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+                <uses-permission android:name="android.permission.READ_CALL_LOG"/>
+                <uses-permission android:name="android.permission.ANSWER_PHONE_CALLS" /> (only for android API level >= 26)
+
+        SMSOTP:
+                <uses-permission android:name="android.permission.RECEIVE_SMS" />
+
+        COMMON:
+                <uses-permission android:name="android.permission.INTERNET" />
+
+        ORCHESTRATION:
+                All of above Permissions
+
+
 
 5. Request for the user for the above mentioned permissions, as SDK requires these permissions in-order to verify the mobile numbers.
 
@@ -83,59 +99,106 @@ Upon submission of your App to Google play, make sure to check the exact use-cas
 ![Google Play Declaration](https://github.com/exotel/ExoVerify/blob/master/app/readme-pictures/notp_read_call_log_reason.png)
 
 ### JAVA Class Integration
-6. Declare the ExotelVerification object in the activity where the verification is to take place:
 
-        ExotelVerification eVerification;
+6. Getting time in seconds after which the verification will time out. (Optional)
+* Import TimerListener interface.
 
-7. Create a Config object using ConfigBuilder. Initialize Verification by passing the config object to the constructor:
+        import com.exotel.verification.exposed_interfaces.TimerListener;
 
-        Config config = new ConfigBuilder(<YOUR JOURNEY ID>, <MASTER KEY>, <MASTER TOKEN>, <ACCOUNT SID>,getApplicationContext()).Build();
-        eVerification = new ExotelVerification(config);
+* Create a Timer class and implement the TimerListener.
 
-NOTE: You should get your AccountSid, Journey ID and Master Token and Master key by logging into exoverify dashboard.
+        class Timer implements TimerListener{
+        @Override
+        public void getTimerTick(final long time) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    String text = mechanism == VerificationType.NOTP? "Please expect the verification call in ":"Please expect the sms in ";
+                    timer.setText(text + time / 1000 +" seconds.");
+                }
+            });
+        }
+    }
 
+7. Parsing OTP from the received message (only required for SMSOTP with auto read enabled or ORCHESTRATION  with auto read enabled).
+* Import the Timer class and TimerListener interface.
+
+        import com.exotel.verification.exposed_interfaces.OtpParser;
+
+* Create a class and implement the OtpParser.
+
+        class Otp implements OtpParser{
+        @Override
+        public String parseOtpFromMessage(String message) {
+            String pattern = "\\d+";
+            Pattern r = Pattern.compile(pattern);
+            Matcher m = r.matcher(message);
+            if (m.find()) {
+                String otp = m.group(0);
+                return otp;
+            }
+            return "";
+        }
+    }
 8. Create a class that implements ‘VerificationListener’. This is where you can define the actions that take place when the verification of the number succeeds or fails :
 
         class verifyListener implements VerificationListener {
-            public void onVerificationStarted(VerificationStart verificationStart) {
-                Log.i(LOGGING_TAG, "Verification Started!" + "Mechanism Type :"+ verificationStart.getVerificationType());  
+            public void onVerificationStarted(VerificationDetail verificationDetail) {
+                Log.i(LOGGING_TAG, "Verification Started!" + "Mechanism Type :"+ verificationDetail.getVerificationType());  
             }   
-            public void onVerificationSuccess(VerificationSuccess verificationSuccess) {
+            public void onVerificationSuccess(VerificationDetail verificationDetail) {
                 Log.i(LOGGING_TAG, "Verification Successful!");
             }
-            public void onVerificationFailed(VerificationFailed verificationFailed) {
-                Log.i(LOGGING_TAG, "Verification Failed: "+verificationFailed.getRequestID()+ " "+verificationFailed.getErrorCode()+" "+verificationFailed.getErrorMessage()+" "+verificationFailed.getMiscData() ); 
+            public void onVerificationFailed(VerificationDetail verificationDetail) {
+                Log.i(LOGGING_TAG, "Verification Failed: "+VerificationDetail.getRequestID()+ " "+VerificationDetail.getErrorCode()+" "+VerificationDetail.getErrorMessage()+" "+VerificationDetail.getMiscData() ); 
             }
         }
-9. In VerificationStart Object you can get type of verfication that is started using this method getVerificationType() and change the screen accordingly.
 
-10. Start Verification:
-    Start the verification process by using the startVerification method. This method takes the following parameters:
-* listener - new verifyListerner created in Step 8
-* phone number - number should be in E164
-* HTTP timeout - timeout value in seconds.
-* vars - Replacement vars that will be placed on the placeholder {#var#} in the sequence they are passed. If there are no {#var#} placeholder in sms template, pass empty string array
+NOTE:
+* VerificationError in VerificationDetails can be NULL.
+* miscData in VerificationError can be NULL.
+* VerificationId in VerificationDetails can be NULL, if Verification failed to start.
 
 
-        eVerification.startOrchestrationVerification(new verifyListener(), phoneNumber, timeOutValueInSeconds,vars);
+9. Create Credentials:
+        Master Credentials (for Orchestration)
+                Credentials credentials = Credentials.masterCredential(ACCOUNT_SID,MASTER_KEY,MASTER_TOKEN);
+        App Cedentials(for Notp or SMSOTP)
+                Credentials credentials = Credentials.appCredential(ACCOUNT_SID,SECRET);
+10. Create app setting(only for Orchestration or SMSOTP):
+        AppSettings appSettings = new OrchestrationAppSettings.Builder().enableOtpAutoRead(true).build();
 
-11. Once the user enters the OTP, you need to call verifyOtp function of ExotelVerification class to verify it. This function doesnot return anything. onVerificationSuccess, onVerificationFailed will be called based on success or failure.
+11. Create Verification App:
+        VerificationApp verificationApp = new ExoverifyApp.BuildVerificationApp()
+                                .setVerificationType(VerificationType.ORCHESTRATION) -------> specify correct verification type (notp, smsotp, orchestration)
+                                .setId(ID) ----> app Id / Journey Id
+                                .setAppSettings(appSettings) -----> only required for smsotp and orchestration
+                                .setCredentials(credentials) 
+                                .setContext(getApplicationContext())
+                                .build();
+12. Create Verification Params:
+        VerificationParams verificationParams = new VerificationParams.Builder()
+                                .setVerificationListener(new verifyListener())
+                                .setOtpParser(new Otp()) ----> only required for smsotp with auto read and orchestration with auto read
+                                .setTimerListener(new Timer()) ------> optional
+                                .setReplacementVar(new ArrayList<String>())  ------> onl required for smsotp and orchestration
+                                .build();
+13. Start Verification:
+        verificationApp.verify(phoneNumber, verificationParams);
 
-12. Getting time in seconds after which the verification will time out.
-* Import the Timer class and TimerListener interface.
+14. If user enters OTP, to verify OTP, send OTP to SDK like this:
+        Imports:
+                import static com.exotel.verification.constant.Constants.OTP_BROADCAST;
+                import static com.exotel.verification.constant.Constants.OTP_KEY;
 
-        import com.exotel.verification.Timer;
-        import com.exotel.verification.TimerListener;
+        Intent intent = new Intent();
+        intent.setAction(OTP_BROADCAST);
+        intent.putExtra(OTP_KEY,OTP_ENTERED_BY_USER);
+        sendBroadcast(intent);
 
-* Create an instance of the Timer class and implement the TimerListener.
-
-        Timer customTimer = new Timer();
-        customTimer.setTimerListener(new TimerListener() {
-      @Override
-        public void getTimerTick(long time) {
-            secondsTv.setText("Please expect the verification call in " + String.valueOf(time/1000) + " seconds.");
-        }
-        });
+NOTE: 
+* You should get your AccountSid, Journey ID and Master Token and Master key by logging into exoverify dashboard.
+* In VerificationStart Object you can get type of verfication that is started using this method getVerificationType() and change the screen accordingly.
 
 ### Troubleshooting
 * Make sure you use the latest version of the SDK for best performance and security
@@ -165,15 +228,22 @@ NOTE: You should get your AccountSid, Journey ID and Master Token and Master key
     * 808 - Error parsing the response / Invalid response from the server. Please report this
     * 809 - API throttle limit for this application has been reached. Please wait for it to reset
     * 810 - Throttle limit for this phone number has been reached. Please wait for it to reset
-    * 811 - Unknown Error occurred. Please report this.
+    * 811 - Unknown Error occurred. (Please report this)
     * 812 - Phone might have been busy on another call during verification. Or it's a timeout
     * 813 - Not able to get Cell Signal/ No country Code returned
     * 814 - Invalid Number/ not in E164 format
+    * 819 - Wrong caller Id (please report us)
     * 1210 - OTP has expired
     * 1211 - Invalid OTP Entered
     * 1017 - OTP already verified
     * 1016 - Maximum allowed verification attempts has been made to verify OTP
-
+    * 1030 - Throtle limit breached
+    * 1031 - App id or journey id not found
+    * 115 - Inactive app or journey
+    * 116 - Inactive account
+    * 1009 - Insufficient baance
+    * 500 - Internal server error (please report us)
+    * 400 - Bad request (please report us)
 
 Contact Exoverify support with supporting logs if issue persists or requires further support.
 

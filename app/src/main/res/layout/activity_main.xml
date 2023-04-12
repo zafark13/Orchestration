@@ -4,7 +4,7 @@
   -->
 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:orchestrationVerificationApp="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_main"
     android:layout_width="match_parent"
@@ -14,7 +14,7 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:background="#000000"
-    tools:context="com.example.orchestrationSampleApp.MainActivity">
+    tools:context="com.exotel.verificationdemoapp.VerificationActivity">
 
     <Button
         android:id="@+id/verifyOtp"
@@ -123,7 +123,7 @@
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:srcCompat="@mipmap/success"
+        orchestrationVerificationApp:srcCompat="@mipmap/success"
         android:id="@+id/imageViewTick"
         android:visibility="invisible"
         android:layout_alignLeft="@+id/loadingCircles"
@@ -136,7 +136,7 @@
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:srcCompat="@mipmap/error"
+        orchestrationVerificationApp:srcCompat="@mipmap/error"
         android:id="@+id/imageViewCross"
         android:visibility="invisible"
         android:layout_alignTop="@+id/loadingCircles"
@@ -215,7 +215,7 @@
         android:id="@+id/exotelPoweredLogo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:srcCompat="@raw/exotel_logo"
+        orchestrationVerificationApp:srcCompat="@raw/exotel_logo"
         android:adjustViewBounds="true"
         android:scaleType="fitCenter"
         android:maxWidth="100dp"
@@ -235,6 +235,5 @@
         android:layout_alignBottom="@+id/phoneNumber"
         android:layout_alignLeft="@+id/verifyButton"
         />
-
-
 </RelativeLayout>
+

@@ -1,20 +1,6 @@
-pluginManagement {
-    repositories {
-        gradlePluginPortal()
-        google()
-        mavenCentral()
-    }
-}
-dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
-    repositories {
-        google()
-        mavenCentral()
-        maven {
-            url 'https://jitpack.io'
-            credentials  { username 'jp_etcct006nc8pkd0ntra0n5uk9k' }
-        }
-    }
-}
-rootProject.name = "My Application"
+/*
+ * Copyright 2017 Exotel India Pvt Ltd
+ *
+ */
+
 include ':app'
