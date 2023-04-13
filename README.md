@@ -11,7 +11,7 @@ Verify user’s mobile number quickly and seamlessly using Exoverify verificatio
 This SDK supports three types of verification:
 1. nOTP: Exoverify SDK automatically intercepts a phone call triggered by the Exoverify system for the mobile number verification, allowing you to verify your users with no user interaction. Using the SDK, you can have nOTP verification into your existing android apps with just a few lines of code.
 
-2. SMSOTP: Exeverify SDK automatically detects the sms received on phone, extracts OTP from sms and verify it seamlessly without any user interaction, it also supports OTP verification manually by user.
+2. SMSOTP: Exoverify SDK automatically detects the sms received on phone, extracts OTP from sms and verify it seamlessly without any user interaction, it also supports OTP verification manually by user.
 
 3. ORCHESTRATION: This feature ensures efficient and streamlined verification processes by allowing clients to trigger a sequence of mechanisms with pre-defined timeouts. Currently, we offer two verification mechanisms nOTP and SMSOTP, with more to be launched in the future. This feature allows for all mechanisms to be seamlessly integrated for a smooth and efficient verification process.
 
@@ -20,12 +20,12 @@ Learn more about nOTP : https://exotel.com/products/authentication/
 ### Verification Process
 The below flow diagram explains a typical verification process:
 
-![Verification Process](https://github.com/exotel-products/Orchestration/blob/master/verificationProcess.png)
+![Verification Process](https://github.com/exotel-products/Orchestration/blob/master/VerificationProcess.png)
 
 ### Sequence Diagram
 The below squence diagram explains the sequence of opeartions between client server and Orchestration SDK and Backend :
 
-![Sequence Diagram](https://github.com/exotel-products/Orchestration/blob/master/OrchestrationSequenceDiagram.png)
+![Sequence Diagram](https://github.com/exotel-products/Orchestration/blob/master/VerificationSequenceDiagram.png)
 
 ### Pre-requisites
 * User needs to have a KYC verified account with Exotel.
@@ -128,18 +128,18 @@ Upon submission of your App to Google play, make sure to check the exact use-cas
 * Create a class and implement the OtpParser.
 
         class Otp implements OtpParser{
-        @Override
-        public String parseOtpFromMessage(String message) {
-            String pattern = "\\d+";
-            Pattern r = Pattern.compile(pattern);
-            Matcher m = r.matcher(message);
-            if (m.find()) {
-                String otp = m.group(0);
-                return otp;
-            }
-            return "";
+                @Override
+                public String parseOtpFromMessage(String message) {
+                String pattern = "\\d+";
+                Pattern r = Pattern.compile(pattern);
+                Matcher m = r.matcher(message);
+                if (m.find()) {
+                        String otp = m.group(0);
+                        return otp;
+                }
+                return "";
+                }
         }
-    }
 8. Create a class that implements ‘VerificationListener’. This is where you can define the actions that take place when the verification of the number succeeds or fails :
 
         class verifyListener implements VerificationListener {
@@ -161,14 +161,18 @@ NOTE:
 
 
 9. Create Credentials:
+
         Master Credentials (for Orchestration)
                 Credentials credentials = Credentials.masterCredential(ACCOUNT_SID,MASTER_KEY,MASTER_TOKEN);
         App Cedentials(for Notp or SMSOTP)
                 Credentials credentials = Credentials.appCredential(ACCOUNT_SID,SECRET);
+
 10. Create app setting(only for Orchestration or SMSOTP):
+
         AppSettings appSettings = new OrchestrationAppSettings.Builder().enableOtpAutoRead(true).build();
 
 11. Create Verification App:
+
         VerificationApp verificationApp = new ExoverifyApp.BuildVerificationApp()
                                 .setVerificationType(VerificationType.ORCHESTRATION) -------> specify correct verification type (notp, smsotp, orchestration)
                                 .setId(ID) ----> app Id / Journey Id
@@ -176,17 +180,22 @@ NOTE:
                                 .setCredentials(credentials) 
                                 .setContext(getApplicationContext())
                                 .build();
+
 12. Create Verification Params:
+
         VerificationParams verificationParams = new VerificationParams.Builder()
                                 .setVerificationListener(new verifyListener())
                                 .setOtpParser(new Otp()) ----> only required for smsotp with auto read and orchestration with auto read
                                 .setTimerListener(new Timer()) ------> optional
                                 .setReplacementVar(new ArrayList<String>())  ------> onl required for smsotp and orchestration
                                 .build();
+
 13. Start Verification:
+
         verificationApp.verify(phoneNumber, verificationParams);
 
 14. If user enters OTP, to verify OTP, send OTP to SDK like this:
+
         Imports:
                 import static com.exotel.verification.constant.Constants.OTP_BROADCAST;
                 import static com.exotel.verification.constant.Constants.OTP_KEY;
